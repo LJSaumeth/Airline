@@ -1,4 +1,4 @@
-package com.example.demo;
+package edu.unimag;
 
 import org.springframework.boot.SpringApplication;
 
