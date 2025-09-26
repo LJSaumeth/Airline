@@ -23,7 +23,7 @@ import lombok.NoArgsConstructor;
 @Entity
 @Table(name = "seats_inventory")
 public class SeatInventory {
-	@Id @GeneratedValue(strategy = GenerationType.AUTO)
+    @Id @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "seat_inventory_id")
     private Long id;
 
@@ -37,6 +37,7 @@ public class SeatInventory {
     @Column(nullable = false, name = "available_seats")
     private Integer availableSeats;
 
-    @ManyToOne @JoinColumn(name = "flight_id", nullable = false)
-    private Flight flight;
+  @ManyToOne @JoinColumn(name = "flight_id", nullable = false)
+  private Flight flight;
+
 }
