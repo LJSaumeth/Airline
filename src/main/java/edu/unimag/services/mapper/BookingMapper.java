@@ -1,34 +1,30 @@
 package edu.unimag.services.mapper;
 
-import java.time.OffsetDateTime;
 import java.util.List;
 
-import edu.unimag.api.dto.BookingDTOs.BookingCreateRequest;
-import edu.unimag.api.dto.BookingDTOs.BookingResponse;
-import edu.unimag.api.dto.BookingDTOs.BookingUpdateRequest;
-import edu.unimag.api.dto.BookingItemDTOs.BookingItemCreateRequest;
+import edu.unimag.api.dto.BookingDTOs.*;
 import edu.unimag.domain.Enum.Cabin;
-import edu.unimag.domain.entity.Booking;
-import edu.unimag.domain.entity.BookingItem;
-import edu.unimag.domain.entity.Passenger;
+import edu.unimag.domain.entity.*;
 
 public class BookingMapper {
-    	public static Booking toEntity(BookingCreateRequest request, Passenger passenger, List<BookingItemCreateRequest> items) {
-        var b = Booking.builder().createdAt(OffsetDateTime.now())
-                .passenger(passenger).build();
+    public static BookingResponse toResponse(Booking entity) {
+        var items = entity.getItems() == null? List.<BookingItemResponse>of() : entity.getItems().stream().map(BookingMapper::toItemResponse).toList();
+        var passengerName = entity.getPassenger() == null? null: entity.getPassenger().getFullName();
+        var passengerEmail = entity.getPassenger() == null? null: entity.getPassenger().getEmail();
 
-        List<BookingItem> itemsToEntities = items.stream().map(item -> BookingItem.builder().cabin(Cabin.valueOf(item.cabin())).price(item.price())
-                .segmentOrder(item.segmentOrder()).booking(b).build()).toList();
-        itemsToEntities.forEach(b::addItem);
-        return b;
+        return new BookingResponse(entity.getId(), entity.getCreatedAt(), passengerName, passengerEmail, items);
     }
-    public static BookingResponse toDTO(Booking entity) {
-        return new BookingResponse(entity.getId(),
-        	    entity.getCreatedAt(),
-        	    PassengerMapper.toDTO(entity.getPassenger()), // instead of just getId()
-        	    entity.getItems().stream().map(BookingItemMapper::toDTO).toList());
-    }
-    public static void patch(Booking entity, BookingUpdateRequest request, Passenger passenger, List<BookingItem> items) {
 
+    public static BookingItemResponse toItemResponse(BookingItem entity) {
+        return new BookingItemResponse(entity.getId(), entity.getCabin().name(), entity.getPrice(), entity.getSegmentOrder(),
+                entity.getFlight().getId(), entity.getFlight().getNumber());
     }
+
+    public static void itemPatch(BookingItem entity, BookingItemUpdateRequest request) {
+        if (request.cabin() != null) entity.setCabin(Cabin.valueOf(request.cabin().toUpperCase()));
+        if (request.price() != null) entity.setPrice(request.price());
+        if (request.segmentOrder() != null) entity.setSegmentOrder(request.segmentOrder());
+    }
+
+    public static void addItem(BookingItem item, Booking booking){ booking.addItem(item); }
 }

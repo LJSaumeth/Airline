@@ -1,5 +1,5 @@
 package edu.unimag.services;
 
-public class PassengerService {
+public interface PassengerService {
 
 }

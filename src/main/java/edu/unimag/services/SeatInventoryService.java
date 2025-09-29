@@ -1,5 +1,5 @@
 package edu.unimag.services;
 
-public class SeatInventoryService {
+public interface SeatInventoryService {
 
 }
