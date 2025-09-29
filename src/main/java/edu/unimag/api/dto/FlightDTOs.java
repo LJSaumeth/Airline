@@ -2,21 +2,18 @@ package edu.unimag.api.dto;
 
 import java.io.Serializable;
 import java.time.OffsetDateTime;
-import java.util.List;
 import java.util.Set;
-import jakarta.annotation.Nullable;
+
+import edu.unimag.api.dto.TagDTOs.TagResponse;
+import jakarta.annotation.Nonnull;
 
 public class FlightDTOs {
-	public record FlightCreateRequest(String number, OffsetDateTime departureTime, OffsetDateTime arrivalTime, Long airline_id,
-            Long origin_airport_id, Long destination_airport_id, Set<String> tagsNames,
-            List<SeatInventoryDTOs.SeatInventoryCreateRequest> seatsInventory) implements Serializable {}
+	public record FlightCreateRequest(@Nonnull String number, @Nonnull OffsetDateTime departureTime, @Nonnull OffsetDateTime arrivalTime) implements Serializable {}
 
-public record FlightUpdateRequest(@Nullable String number, OffsetDateTime departureTime, OffsetDateTime arrivalTime,
-            @Nullable Long airline_id, @Nullable Long origin_airport_id, @Nullable Long destination_airport_id,
-            @Nullable Set<String> tagsNames) implements Serializable {}
+    public record FlightUpdateRequest(String number, @Nonnull OffsetDateTime departureTime, @Nonnull OffsetDateTime arrivalTime, Long destination_airport_id) implements Serializable {}
 
-public record FlightResponse(Long id, String number, OffsetDateTime departureTime, OffsetDateTime arrivalTime,
-         Long airline_id, Long origin_airport_id, Long destination_airport_id,
-         Set<TagDTOs.TagResponse> tags) implements Serializable {}
+    public record FlightResponse(Long id, String number, OffsetDateTime departureTime, OffsetDateTime arrivalTime,
+                                 Long airline_id, Long origin_airport_id, Long destination_airport_id,
+                                 Set<TagResponse> tags) implements Serializable {}
 
 }

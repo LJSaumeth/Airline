@@ -1,6 +1,5 @@
 package edu.unimag.services.mapper;
 
-import java.util.Collections;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -16,9 +15,8 @@ public class FlightMapper {
 	        return Flight.builder().number(request.number()).arrivalTime(request.arrivalTime())
 	                .departureTime(request.departureTime()).build();
 	    }
-
-	    //Check out this method, 'cause how can I get the seatsInventory of a flight when the flight doesn't have a collection of them?
-	    public static FlightResponse toResponse(Flight flight) {
+	 
+	 public static FlightResponse toResponse(Flight flight) {
 	        Set<TagResponse> tagResponses = flight.getTags() == null ? Set.of() :
 	                flight.getTags().stream()
 	                        .map(tag -> new TagResponse(tag.getId(), tag.getName()))
