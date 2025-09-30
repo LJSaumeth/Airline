@@ -16,7 +16,7 @@ public class BookingMapper {
     }
 
     public static BookingItemResponse toItemResponse(BookingItem entity) {
-        return new BookingItemResponse(entity.getId(), entity.getCabin().name(), entity.getPrice(), entity.getSegmentOrder(),
+        return new BookingItemResponse(entity.getId(), entity.getCabin().name(), entity.getPrice(), entity.getSegmentOrder(), entity.getBooking().getId(),
                 entity.getFlight().getId(), entity.getFlight().getNumber());
     }
 
