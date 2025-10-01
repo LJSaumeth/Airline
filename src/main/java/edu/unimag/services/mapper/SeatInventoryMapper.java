@@ -1,26 +1,45 @@
 package edu.unimag.services.mapper;
 
 import edu.unimag.api.dto.SeatInventoryDTOs.SeatInventoryCreateRequest;
-import edu.unimag.api.dto.SeatInventoryDTOs.SeatInventoryResponse;
 import edu.unimag.api.dto.SeatInventoryDTOs.SeatInventoryUpdateRequest;
-import edu.unimag.domain.Enum.Cabin;
+import edu.unimag.api.dto.SeatInventoryDTOs.SeatInventoryResponse;
 import edu.unimag.domain.entity.SeatInventory;
+import org.mapstruct.*;
+import org.mapstruct.factory.Mappers;
 
-public class SeatInventoryMapper {
-	 public static SeatInventory toEntity(SeatInventoryCreateRequest request ) {
-	        return SeatInventory.builder().cabin(Cabin.valueOf(request.cabin())).availableSeats(request.availableSeats())
-	                .totalSeats(request.availableSeats()).build();
-	    }
-	    public static SeatInventoryResponse toResponse(SeatInventory seatInventory) {
-	        return new SeatInventoryResponse(
-	                seatInventory.getId(), seatInventory.getCabin().name(),
-	                seatInventory.getTotalSeats(), seatInventory.getAvailableSeats(), seatInventory.getFlight().getId()
-	        );
-	    }
+import java.util.List;
 
-	    public static void patch(SeatInventory entity, SeatInventoryUpdateRequest update) {
-	        if (update.cabin() != null) entity.setCabin(Cabin.valueOf(update.cabin()));
-	        if (update.totalSeats() != null) entity.setTotalSeats(update.totalSeats());
-	        if (update.availableSeats() != null) entity.setAvailableSeats(update.availableSeats());
-	    }
+@Mapper(
+    componentModel = "spring",
+    nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE
+)
+public interface SeatInventoryMapper {
+
+    SeatInventoryMapper INSTANCE = Mappers.getMapper(SeatInventoryMapper.class);
+
+    /**
+     * Crea un SeatInventory “stub” desde el DTO.
+     * El vuelo (flight) se ignora para que puedas setearlo manualmente.
+     */
+    @Mapping(target = "flight", ignore = true)
+    SeatInventory toEntity(SeatInventoryCreateRequest dto);
+
+    /**
+     * Actualiza solo las propiedades no nulas.
+     * El vuelo (flight) sigue ignorado en la actualización.
+     */
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    @Mapping(target = "flight", ignore = true)
+    void updateEntityFromDto(SeatInventoryUpdateRequest dto, @MappingTarget SeatInventory entity);
+
+    /**
+     * Mapea SeatInventory → SeatInventoryResponse, extrayendo flight.id → flight_id.
+     */
+    @Mapping(source = "flight.id", target = "flight_id")
+    SeatInventoryResponse toDto(SeatInventory entity);
+
+    /**
+     * Convierte una lista de entidades a lista de DTOs.
+     */
+    List<SeatInventoryResponse> toDtoList(List<SeatInventory> entities);
 }

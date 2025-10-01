@@ -5,17 +5,25 @@ import edu.unimag.api.dto.AirportDTOs.AirportResponse;
 import edu.unimag.api.dto.AirportDTOs.AirportUpdateRequest;
 import edu.unimag.domain.entity.Airport;
 
-public class AirportMapper {
-    public static Airport toEntity(AirportCreateRequest request){
-        return Airport.builder().code(request.code()).name(request.name()).city(request.city()).build();
-    }
+import org.mapstruct.BeanMapping;
+import org.mapstruct.Mapper;
+import org.mapstruct.MappingTarget;
+import org.mapstruct.NullValuePropertyMappingStrategy;
+import org.mapstruct.factory.Mappers;
 
-    public static AirportResponse toResponse(Airport entity){
-        return new AirportResponse(entity.getId(), entity.getCode(),  entity.getName(), entity.getCity());
-    }
+@Mapper(
+	    componentModel = "spring",
+	    nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE
+	)
+	public interface AirportMapper {
 
-    public static void patch(Airport entity, AirportUpdateRequest request){
-        if (request.code() != null) entity.setCode(request.code());
-        if (request.name() != null) entity.setName(request.name());
-    }
-}
+	    // Create a new entity
+	    Airport toEntity(AirportCreateRequest dto);
+
+	    // Patch only non-null fields
+	    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+	    void patch(AirportUpdateRequest dto, @MappingTarget Airport entity);
+
+	    // Convert entity to response DTO
+	    AirportResponse toResponse(Airport entity);
+	}

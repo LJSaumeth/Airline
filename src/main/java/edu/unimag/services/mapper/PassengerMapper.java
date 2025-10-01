@@ -1,5 +1,10 @@
 package edu.unimag.services.mapper;
 
+import java.util.List;
+
+import org.mapstruct.*;
+import org.mapstruct.factory.Mappers;
+
 import edu.unimag.api.dto.PassengerDTOs.PassengerCreateRequest;
 import edu.unimag.api.dto.PassengerDTOs.PassengerProfileDto;
 import edu.unimag.api.dto.PassengerDTOs.PassengerResponse;
@@ -7,32 +12,24 @@ import edu.unimag.api.dto.PassengerDTOs.PassengerUpdateRequest;
 import edu.unimag.domain.entity.Passenger;
 import edu.unimag.domain.entity.PassengerProfile;
 
-public class PassengerMapper {
-    public static Passenger toEntity(PassengerCreateRequest passengerCreateRequest) {
-        var profile = passengerCreateRequest.profile() == null ? null :
-            PassengerProfile.builder().phone(passengerCreateRequest.profile().phone())
-            .countryCode(passengerCreateRequest.profile().countryCode()).build();
-        return Passenger.builder().fullName(passengerCreateRequest.fullName())
-            .email(passengerCreateRequest.email()).profile(profile).build();
-    }
+@Mapper(
+	    componentModel = "spring",
+	    nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE
+	)
+	public interface PassengerMapper {
 
-    public static PassengerResponse toResponse(Passenger passenger){
-        var p = passenger.getProfile();
-        var dto_profile = p == null ? null : new PassengerProfileDto(p.getPhone(), p.getCountryCode());
-        return new PassengerResponse(passenger.getId(),  passenger.getFullName(), passenger.getEmail(), dto_profile);
-    }
+	    PassengerMapper INSTANCE = Mappers.getMapper(PassengerMapper.class);
 
-    public static void patch(Passenger entity, PassengerUpdateRequest request) {
-        if (request.fullName() != null) entity.setFullName(request.fullName());
-        if (request.email() != null) entity.setEmail(request.email());
-        if (request.profile() != null) {
-            var entityProfile =  entity.getProfile();
-            if (entityProfile == null) {
-                entityProfile = new PassengerProfile();
-                entity.setProfile(entityProfile);
-            }
-            if (request.profile().phone() != null) entityProfile.setPhone(request.profile().phone());
-            if (request.profile().countryCode() != null) entityProfile.setCountryCode(request.profile().countryCode());
-        }
-    }
-}
+	    // Crear pasajero con perfil embebido
+	    Passenger toEntity(PassengerCreateRequest dto);
+
+	    // Actualizar solo valores no nulos, incluido perfil
+	    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+	    void updateEntityFromDto(PassengerUpdateRequest dto, @MappingTarget Passenger entity);
+
+	    // Pasajero → DTO (perfil se mapea automáticamente si nombres coinciden)
+	    PassengerResponse toDto(Passenger entity);
+
+	    // Listado de pasajeros
+	    List<PassengerResponse> toDtoList(List<Passenger> entities);
+	}
