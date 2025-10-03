@@ -9,7 +9,7 @@ import jakarta.annotation.Nonnull;
 
 
 public class BookingDTOs {
-	public record BookingCreateRequest(@Nonnull Long passenger_id) implements Serializable {}
+    public record BookingCreateRequest(@Nonnull Long passenger_id) implements Serializable {}
 
     public record BookingResponse(Long id, OffsetDateTime createdAt, String passenger_name, String passenger_email,
                                   List<BookingItemResponse> items) implements Serializable{}

@@ -1,10 +1,6 @@
 package edu.unimag.services.mapper;
 
-import java.util.List;
-
 import org.mapstruct.*;
-import org.mapstruct.factory.Mappers;
-
 import edu.unimag.api.dto.PassengerDTOs.PassengerCreateRequest;
 import edu.unimag.api.dto.PassengerDTOs.PassengerProfileDto;
 import edu.unimag.api.dto.PassengerDTOs.PassengerResponse;
@@ -12,24 +8,33 @@ import edu.unimag.api.dto.PassengerDTOs.PassengerUpdateRequest;
 import edu.unimag.domain.entity.Passenger;
 import edu.unimag.domain.entity.PassengerProfile;
 
-@Mapper(
-	    componentModel = "spring",
-	    nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE
-	)
-	public interface PassengerMapper {
+@Mapper(componentModel = "spring")
+public interface PassengerMapper {
 
-	    PassengerMapper INSTANCE = Mappers.getMapper(PassengerMapper.class);
+    @Mapping(target = "id", ignore = true)
+    @Mapping(source = "profile", target = "profile")
+    Passenger toEntity(PassengerCreateRequest request);
 
-	    // Crear pasajero con perfil embebido
-	    Passenger toEntity(PassengerCreateRequest dto);
+    PassengerResponse toResponse(Passenger passenger);
 
-	    // Actualizar solo valores no nulos, incluido perfil
-	    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
-	    void updateEntityFromDto(PassengerUpdateRequest dto, @MappingTarget Passenger entity);
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    @Mapping(target = "id", ignore = true)
+    void patch(PassengerUpdateRequest request, @MappingTarget Passenger entity);
 
-	    // Pasajero → DTO (perfil se mapea automáticamente si nombres coinciden)
-	    PassengerResponse toDto(Passenger entity);
+    @AfterMapping
+    default void updateProfile(PassengerUpdateRequest request, @MappingTarget Passenger entity) {
+        if (request.profile() != null) {
+            if (entity.getProfile() == null) {
+                entity.setProfile(new PassengerProfile());
+            }
+            patchProfile(request.profile(), entity.getProfile());
+        }
+    }
 
-	    // Listado de pasajeros
-	    List<PassengerResponse> toDtoList(List<Passenger> entities);
-	}
+    @Mapping(target = "id", ignore = true)
+    PassengerProfile toProfileEntity(PassengerProfileDto profileDto);
+
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    @Mapping(target = "id", ignore = true)
+    void patchProfile(PassengerProfileDto profileDto, @MappingTarget PassengerProfile profile);
+}

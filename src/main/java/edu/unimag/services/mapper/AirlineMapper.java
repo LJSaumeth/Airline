@@ -5,21 +5,18 @@ import edu.unimag.api.dto.AirlineDTOs.AirlineUpdateRequest;
 import edu.unimag.api.dto.AirlineDTOs.AirlineResponse;
 import edu.unimag.domain.entity.*;
 import org.mapstruct.*;
-import org.mapstruct.factory.Mappers;
 
-@Mapper(
-	    componentModel = "spring",
-	    nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE
-	)
-	public interface AirlineMapper {
+@Mapper(componentModel = "spring")
+public interface AirlineMapper {
 
-	    // creation
-	    Airline toEntity(AirlineCreateRequest dto);
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "flights", ignore = true)
+    Airline toEntity(AirlineCreateRequest request);
 
-	    // patch/update only non-null fields
-	    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
-	    void patch(AirlineUpdateRequest dto, @MappingTarget Airline entity);
+    AirlineResponse toResponse(Airline airline);
 
-	    // convert to response DTO
-	    AirlineResponse toResponse(Airline entity);
-	}
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "flights", ignore = true)
+    void patch(AirlineUpdateRequest request, @MappingTarget Airline entity);
+}
