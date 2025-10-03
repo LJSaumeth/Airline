@@ -7,6 +7,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import edu.unimag.api.dto.SeatInventoryDTOs.*;
 import edu.unimag.domain.Enum.Cabin;
+import edu.unimag.domain.entity.Flight;
+import edu.unimag.domain.entity.SeatInventory;
 import edu.unimag.domain.repositories.*;
 import edu.unimag.exceptions.NotFoundException;
 import edu.unimag.services.SeatInventoryService;
@@ -14,66 +16,116 @@ import edu.unimag.services.mapper.SeatInventoryMapper;
 import jakarta.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 
-@Service @RequiredArgsConstructor
-public class SeatInventoryServiceImp implements SeatInventoryService{
-	private final SeatInventoryRepository seatInventoryRepository;
-    private final FlightRepository flightRepository;
+@Service
+@RequiredArgsConstructor
+public class SeatInventoryServiceImp implements SeatInventoryService {
+    private final SeatInventoryRepository seatInventoryRepository;
+    private final FlightRepository        flightRepository;
+    private final SeatInventoryMapper     seatInventoryMapper;
 
-    @Override @Transactional
-    public SeatInventoryResponse createSeatInventory(@Nonnull Long flight_id, SeatInventoryCreateRequest request) {
-        var flight = flightRepository.findById(flight_id).orElseThrow(
-                () -> new NotFoundException("Flight %d not found.".formatted(flight_id))
-        );
-        var entitySeat = SeatInventoryMapper.toEntity(request);
-        entitySeat.setFlight(flight);
-        return SeatInventoryMapper.toResponse(seatInventoryRepository.save(entitySeat));
+    @Override
+    @Transactional
+    public SeatInventoryResponse createSeatInventory(
+        @Nonnull Long flightId,
+        SeatInventoryCreateRequest request
+    ) {
+        Flight flight = flightRepository.findById(flightId)
+            .orElseThrow(() -> new NotFoundException(
+                "Flight %d not found.".formatted(flightId)
+            ));
+
+        SeatInventory entity = seatInventoryMapper.toEntity(request);
+        entity.setFlight(flight);
+
+        SeatInventory saved = seatInventoryRepository.save(entity);
+        return seatInventoryMapper.toResponse(saved);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public SeatInventoryResponse getSeatInventory(@Nonnull Long id) {
-        return seatInventoryRepository.findById(id).map(SeatInventoryMapper::toResponse).orElseThrow(
-                () -> new NotFoundException("SeatInventory %d not found.".formatted(id))
-        );
+        return seatInventoryRepository.findById(id)
+            .map(seatInventoryMapper::toResponse)
+            .orElseThrow(() -> new NotFoundException(
+                "SeatInventory %d not found.".formatted(id)
+            ));
     }
 
-    @Override @Transactional
-    public SeatInventoryResponse updateSeatInventory(@Nonnull Long id, SeatInventoryUpdateRequest request) {
-        var seatInventory = seatInventoryRepository.findById(id).orElseThrow(
-                () -> new NotFoundException("SeatInventory %d not found.".formatted(id))
-        );
-        SeatInventoryMapper.patch(seatInventory, request);
-        return SeatInventoryMapper.toResponse(seatInventoryRepository.save(seatInventory));
+    @Override
+    @Transactional
+    public SeatInventoryResponse updateSeatInventory(
+        @Nonnull Long id,
+        SeatInventoryUpdateRequest request
+    ) {
+        SeatInventory entity = seatInventoryRepository.findById(id)
+            .orElseThrow(() -> new NotFoundException(
+                "SeatInventory %d not found.".formatted(id)
+            ));
+
+        seatInventoryMapper.patch(request, entity);
+        SeatInventory updated = seatInventoryRepository.save(entity);
+
+        return seatInventoryMapper.toResponse(updated);
     }
 
-    @Override @Transactional
+    @Override
+    @Transactional
     public void deleteSeatInventory(@Nonnull Long id) {
         seatInventoryRepository.deleteById(id);
     }
 
     @Override
-    public List<SeatInventoryResponse> listSeatInventoriesByFlight(@Nonnull Long flight_id) {
-        var flight = flightRepository.findById(flight_id).orElseThrow(
-                () -> new NotFoundException("Flight %d not found.".formatted(flight_id))
-        );
-        return seatInventoryRepository.findByFlight_Id(flight.getId()).stream().map(SeatInventoryMapper::toResponse).toList();
+    @Transactional(readOnly = true)
+    public List<SeatInventoryResponse> listSeatInventoriesByFlight(@Nonnull Long flightId) {
+        Flight flight = flightRepository.findById(flightId)
+            .orElseThrow(() -> new NotFoundException(
+                "Flight %d not found.".formatted(flightId)
+            ));
+
+        return seatInventoryRepository.findByFlight_Id(flight.getId()).stream()
+            .map(seatInventoryMapper::toResponse)
+            .toList();
     }
 
     @Override
-    public SeatInventoryResponse getSeatInventoryByFlightAndCabin(@Nonnull Long flight_id, @Nonnull String cabin) {
-        var flight = flightRepository.findById(flight_id).orElseThrow(
-                () -> new NotFoundException("Flight %d not found.".formatted(flight_id))
-        );
-        var seat = seatInventoryRepository.findByFlight_IdAndCabin(flight.getId(), Cabin.valueOf(cabin)).orElseThrow(
-                () -> new NotFoundException("SeatInventory for flight %d with Cabin %s not found.".formatted(flight_id, cabin))
-        );
-        return SeatInventoryMapper.toResponse(seat);
+    @Transactional(readOnly = true)
+    public SeatInventoryResponse getSeatInventoryByFlightAndCabin(
+        @Nonnull Long flightId,
+        @Nonnull String cabin
+    ) {
+        Flight flight = flightRepository.findById(flightId)
+            .orElseThrow(() -> new NotFoundException(
+                "Flight %d not found.".formatted(flightId)
+            ));
+
+        Cabin cabinEnum = Cabin.valueOf(cabin);
+        SeatInventory seat = seatInventoryRepository
+            .findByFlight_IdAndCabin(flight.getId(), cabinEnum)
+            .orElseThrow(() -> new NotFoundException(
+                "SeatInventory for flight %d with Cabin %s not found."
+                .formatted(flightId, cabin)
+            ));
+
+        return seatInventoryMapper.toResponse(seat);
     }
 
     @Override
-    public boolean existsSeatInventoryByFlightAndCabinWithMinAvailableSeats(@Nonnull Long flight_id, @Nonnull String cabin, @Nonnull Integer min) {
-        var flight = flightRepository.findById(flight_id).orElseThrow(
-                () -> new NotFoundException("Flight %d not found.".formatted(flight_id))
-        );
-        return seatInventoryRepository.existsByFlight_IdAndCabinAndAvailableSeatsIsGreaterThanEqual(flight.getId(), Cabin.valueOf(cabin), min);
+    @Transactional(readOnly = true)
+    public boolean existsSeatInventoryByFlightAndCabinWithMinAvailableSeats(
+        @Nonnull Long flightId,
+        @Nonnull String cabin,
+        @Nonnull Integer min
+    ) {
+        Flight flight = flightRepository.findById(flightId)
+            .orElseThrow(() -> new NotFoundException(
+                "Flight %d not found.".formatted(flightId)
+            ));
+
+        return seatInventoryRepository
+            .existsByFlight_IdAndCabinAndAvailableSeatsIsGreaterThanEqual(
+                flight.getId(),
+                Cabin.valueOf(cabin),
+                min
+            );
     }
 }
