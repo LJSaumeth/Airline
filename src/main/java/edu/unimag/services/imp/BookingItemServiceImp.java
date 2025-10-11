@@ -19,14 +19,16 @@ import jakarta.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 
 @Service @RequiredArgsConstructor
-public class BookingItemServiceImp implements BookingItemService{
-	private final BookingItemRepository bookingItemRepository;
+public class BookingItemServiceImp implements BookingItemService {
+    private final BookingItemRepository bookingItemRepository;
     private final FlightRepository flightRepository;
     private final BookingRepository bookingRepository;
 
     @Override @Transactional
-public BookingItemResponse addBookingItem(Long booking_id, Long flight_id, BookingItemCreateRequest request) {
-        var flight =  flightRepository.findById(flight_id).orElseThrow(() -> new NotFoundException("Flight %d not found".formatted(flight_id)));
+    public BookingItemResponse addBookingItem(Long booking_id, BookingItemCreateRequest request) {
+        var flight =  flightRepository.findById(request.flight_id()).orElseThrow(
+                () -> new NotFoundException("Flight %d not found".formatted(request.flight_id()))
+        );
         var booking = bookingRepository.findById(booking_id).orElseThrow(
                 () -> new NotFoundException("Booking %d not found".formatted(booking_id))
         );
@@ -46,16 +48,11 @@ public BookingItemResponse addBookingItem(Long booking_id, Long flight_id, Booki
     }
 
     @Override @Transactional
-    public BookingItemResponse updateBookingItem(Long id, BookingItemUpdateRequest request, Long flight_id) {
+    public BookingItemResponse updateBookingItem(Long id, BookingItemUpdateRequest request) {
         var bookingItem = bookingItemRepository.findById(id).orElseThrow(
                 () -> new NotFoundException("Booking Item %d not found".formatted(id))
         );
         BookingMapper.itemPatch(bookingItem, request);
-
-        var flight = flightRepository.findById(flight_id).orElseThrow(
-                () -> new NotFoundException("Flight %d not found".formatted(flight_id))
-        );
-        bookingItem.setFlight(flight);
 
         return BookingMapper.toItemResponse(bookingItem);
     }
