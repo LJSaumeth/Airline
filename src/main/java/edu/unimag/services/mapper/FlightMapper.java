@@ -11,31 +11,33 @@ import edu.unimag.domain.entity.Flight;
 import edu.unimag.domain.entity.Tag;
 
 public class FlightMapper {
-	 public static Flight ToEntity(FlightCreateRequest request) {
-	        return Flight.builder().number(request.number()).arrivalTime(request.arrivalTime())
-	                .departureTime(request.departureTime()).build();
-	    }
-	 
-	 public static FlightResponse toResponse(Flight flight) {
-	        Set<TagResponse> tagResponses = flight.getTags() == null ? Set.of() :
-	                flight.getTags().stream()
-	                        .map(tag -> new TagResponse(tag.getId(), tag.getName()))
-	                        .collect(Collectors.toSet());
+	public static Flight ToEntity(FlightCreateRequest request) {
+        return Flight.builder().number(request.number()).arrivalTime(request.arrivalTime())
+                .departureTime(request.departureTime()).build();
+    }
 
-	        return  new FlightResponse(flight.getId(), flight.getNumber(), flight.getDepartureTime(),
-	                flight.getArrivalTime(), flight.getAirline() != null ? flight.getAirline().getId() : null,
-	                flight.getOrigin() != null ? flight.getOrigin().getId() : null,
-	                flight.getDestination() != null ? flight.getDestination().getId() : null, tagResponses
-	        );
-	    }
+    public static FlightResponse toResponse(Flight flight) {
+        Set<TagResponse> tagResponses = flight.getTags() == null ? Set.of() :
+                flight.getTags().stream()
+                        .map(tag -> new TagResponse(tag.getId(), tag.getName()))
+                        .collect(Collectors.toSet());
+        var airline = flight.getAirline();
+        var origin = flight.getOrigin();
+        var destination = flight.getDestination();
 
-	    public static void patch(Flight entity, FlightUpdateRequest request ) {
-	        if (request.number() != null ) entity.setNumber(request.number());
-	        if (request.departureTime() != null ) entity.setDepartureTime(request.departureTime());
-	        if (request.arrivalTime() != null ) entity.setArrivalTime(request.arrivalTime());
-	    }
+        return  new FlightResponse(flight.getId(), flight.getNumber(), flight.getDepartureTime(),
+                flight.getArrivalTime(), airline.getId(), airline.getName(), origin.getId(),
+                origin.getName(), destination.getId(), destination.getName(), tagResponses
+        );
+    }
 
-	    public static void addTag(Flight flight, Tag tag) {
-	        flight.addTag(tag);
-	    }
+    public static void patch(Flight entity, FlightUpdateRequest request ) {
+        if (request.number() != null ) entity.setNumber(request.number());
+        if (request.departureTime() != null ) entity.setDepartureTime(request.departureTime());
+        if (request.arrivalTime() != null ) entity.setArrivalTime(request.arrivalTime());
+    }
+
+    public static void addTag(Flight flight, Tag tag) {
+        flight.addTag(tag);
+    }
 }
