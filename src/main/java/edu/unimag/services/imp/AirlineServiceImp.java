@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import edu.unimag.api.dto.AirlineDTOs.*;
+import edu.unimag.domain.entity.Airline;
 import edu.unimag.domain.repositories.AirlineRepository;
 import edu.unimag.exceptions.NotFoundException;
 import edu.unimag.services.AirlineService;
@@ -15,48 +16,61 @@ import edu.unimag.services.mapper.AirlineMapper;
 import jakarta.annotation.Nonnull;
 import lombok.RequiredArgsConstructor;
 
-@Service @Transactional @RequiredArgsConstructor
+@Service
+@Transactional
+@RequiredArgsConstructor
 public class AirlineServiceImp implements AirlineService {
-	private final AirlineRepository airlineRepository;
+    private final AirlineRepository airlineRepository;
+    private final AirlineMapper     airlineMapper;   // ← inject mapper
 
     @Override
     public AirlineResponse createAirline(AirlineCreateRequest request) {
-        var airline = AirlineMapper.toEntity(request);
-        return AirlineMapper.toResponse(airlineRepository.save(airline));
-    }
-
-    @Override @Transactional(readOnly = true)
-    public AirlineResponse getAirline(Long id) {
-        return airlineRepository.findById(id).map(AirlineMapper::toResponse)
-                .orElseThrow(() -> new NotFoundException("Airline %d not found.".formatted(id)));
-    }
-
-    @Override @Transactional(readOnly = true)
-    public AirlineResponse getAirlineByCode(String code) {
-        return airlineRepository.findByCode(code).map(AirlineMapper::toResponse)
-                .orElseThrow(() -> new NotFoundException("Airline with code %s not found.".formatted(code)));
+        Airline airline = airlineMapper.toEntity(request);
+        Airline saved   = airlineRepository.save(airline);
+        return airlineMapper.toResponse(saved);
     }
 
     @Override
-    public AirlineResponse updateAirline(Long id, AirlineUpdateRequest request) {
-        var airline = airlineRepository.findById(id)
-                .orElseThrow(() -> new NotFoundException("Airline %d not found.".formatted(id)));
-        AirlineMapper.patch(airline, request);
-        return AirlineMapper.toResponse(airlineRepository.save(airline));
+    @Transactional(readOnly = true)
+    public AirlineResponse getAirline(@Nonnull Long id) {
+        return airlineRepository.findById(id)
+            .map(airlineMapper::toResponse)
+            .orElseThrow(() -> new NotFoundException("Airline %d not found.".formatted(id)));
     }
 
     @Override
-    public void deleteAirline(Long id) {
+    @Transactional(readOnly = true)
+    public AirlineResponse getAirlineByCode(@Nonnull String code) {
+        return airlineRepository.findByCode(code)
+            .map(airlineMapper::toResponse)
+            .orElseThrow(() -> new NotFoundException("Airline with code %s not found.".formatted(code)));
+    }
+
+    @Override
+    public AirlineResponse updateAirline(@Nonnull Long id, AirlineUpdateRequest request) {
+        Airline airline = airlineRepository.findById(id)
+            .orElseThrow(() -> new NotFoundException("Airline %d not found.".formatted(id)));
+        airlineMapper.patch(request, airline);
+        Airline updated = airlineRepository.save(airline);
+        return airlineMapper.toResponse(updated);
+    }
+
+    @Override
+    public void deleteAirline(@Nonnull Long id) {
         airlineRepository.deleteById(id);
     }
 
-    @Override @Transactional(readOnly = true)
+    @Override
+    @Transactional(readOnly = true)
     public List<AirlineResponse> listAllAirlines() {
-        return airlineRepository.findAll().stream().map(AirlineMapper::toResponse).toList();
+        return airlineRepository.findAll().stream()
+            .map(airlineMapper::toResponse)
+            .toList();
     }
 
     @Override
     public Page<AirlineResponse> listAllAirlinesPage(Pageable pageable) {
-        return airlineRepository.findAll(pageable).map(AirlineMapper::toResponse);
+        return airlineRepository.findAll(pageable)
+            .map(airlineMapper::toResponse);
     }
 }
