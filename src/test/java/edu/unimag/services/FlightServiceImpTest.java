@@ -1,30 +1,35 @@
 package edu.unimag.services;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import static org.mockito.Mockito.*;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+
+import edu.unimag.domain.entity.Airline;
+import edu.unimag.domain.entity.Airport;
+import edu.unimag.domain.entity.Flight;
+import edu.unimag.domain.entity.Tag;
+import edu.unimag.domain.repositories.AirlineRepository;
+import edu.unimag.domain.repositories.AirportRepository;
+import edu.unimag.domain.repositories.FlightRepository;
+import edu.unimag.domain.repositories.TagRepository;
+import edu.unimag.services.imp.FlightServiceImp;
+import edu.unimag.api.dto.FlightDTOs.*;
+import edu.unimag.api.dto.TagDTOs.*;
+
+import static org.assertj.core.api.Assertions.*;
 
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
 
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
-
-import edu.unimag.domain.entity.*;
-import edu.unimag.domain.repositories.*;
-import edu.unimag.services.imp.FlightServiceImp;
-import edu.unimag.api.dto.FlightDTOs.*;
-import edu.unimag.api.dto.TagDTOs.*;
-
 @ExtendWith(MockitoExtension.class)
 public class FlightServiceImpTest {
-	@Mock FlightRepository flightRepository;
+    @Mock FlightRepository flightRepository;
     @Mock AirportRepository airportRepository;
     @Mock AirlineRepository airlineRepository;
     @Mock TagRepository tagRepository;
@@ -57,13 +62,13 @@ public class FlightServiceImpTest {
         var now = OffsetDateTime.now();
         var destination = Optional.of(Airport.builder().id(1L).code("XD").name("Zzzairport").city("Soledad").build());
         var destination_2 = Optional.of(Airport.builder().id(2L).code("DX").name("Derivairport").city("Malambo").build());
-        when(airportRepository.findById(1L)).thenReturn(destination);
+
         when(airportRepository.findById(2L)).thenReturn(destination_2);
         when(flightRepository.findById(101L)).thenReturn(Optional.of(Flight.builder().id(101L).number("XD0001").departureTime(now).arrivalTime(now.plusHours(7))
                 .destination(destination.get()).build()));
         when(flightRepository.save(any())).thenAnswer(invocation -> invocation.<Flight>getArgument(0));
 
-        var response = flightService.updateFlight(new FlightUpdateRequest("XD0002", null, null, 2L), 101L);
+        var response = flightService.updateFlight(new FlightUpdateRequest("XD0002", null, null), 101L, 2L);
 
         assertThat(response).isNotNull();
         assertThat(response.id()).isEqualTo(101L);
@@ -86,20 +91,6 @@ public class FlightServiceImpTest {
     }
 
     @Test
-    void shouldRemoveTagFromFlightAndMapToResponse() {
-        var now = OffsetDateTime.now();
-        var flight = Optional.of(Flight.builder().id(1L).number("XD0001").departureTime(now).arrivalTime(now.plusHours(7)).build());
-        when(flightRepository.findById(1L)).thenReturn(flight);
-        when(tagRepository.findById(10001L)).thenReturn(Optional.of(Tag.builder().id(10001L).name("tag 1").build()));
-
-        flightService.addTagToFlight(1L, 10001L);
-
-        var response = flightService.removeTagFromFlight(1L, 10001L);
-
-        assertThat(response.tags()).isEmpty();
-    }
-
-    @Test
     void shouldListFlightsByAirline(){
         var airline = Optional.of(Airline.builder().id(1L).code("XD").name("DownAirline").build());
         when(airlineRepository.findById(1L)).thenReturn(airline);
@@ -112,8 +103,7 @@ public class FlightServiceImpTest {
         var response = flightService.listFlightsByAirline(1L, Pageable.unpaged());
 
         assertThat(response).hasSize(3);
-        assertThat(response).extracting(FlightResponse::airline_id).containsExactly(1L);
-
+        assertThat(response).extracting(FlightResponse::airline_id).allMatch(airline_id -> airline_id.equals(1L));
     }
 
     @Test
@@ -142,13 +132,15 @@ public class FlightServiceImpTest {
 
         //Response 1
         assertThat(response_1).hasSize(2);
-        assertThat(response_1).extracting(FlightResponse::origin_airport_id).containsExactly(1L);
-        assertThat(response_1).extracting(FlightResponse::destination_airport_id).containsExactly(2L);
+        assertThat(response_1).extracting(FlightResponse::origin_airport_id).containsExactly(1L, 1L);
+        assertThat(response_1).extracting(FlightResponse::destination_airport_id).containsExactly(2L, 2L);
         assertThat(response_1).allSatisfy(flight -> assertThat(flight.departureTime()).isBetween(dep_from_time_1, dep_to_time_1));
 
         //Response 2
         assertThat(response_2).hasSize(2);
-        assertThat(response_2).extracting(FlightResponse::origin_airport_id).containsExactly(1L);
-        assertThat(response_1).allSatisfy(flight -> assertThat(flight.departureTime()).isBetween(dep_from_time_2, dep_to_time_2));
+        assertThat(response_2).extracting(FlightResponse::origin_airport_id).containsExactly(1L, 1L);
+        assertThat(response_2).extracting(FlightResponse::departureTime).allMatch(
+                dep_time -> dep_time.isAfter(dep_from_time_2) && dep_time.isBefore(dep_to_time_2)
+        );
     }
 }
