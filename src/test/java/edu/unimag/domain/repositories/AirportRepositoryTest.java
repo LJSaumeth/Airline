@@ -49,4 +49,3 @@ class AirportRepositoryTest extends AbstractRepository{
         assertThat(loaded).hasSize(3);
     }
 }
-

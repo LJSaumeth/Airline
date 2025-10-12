@@ -10,14 +10,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import edu.unimag.domain.entity.Airline;
 
-class AirlineRepositoryTest extends AbstractRepository{
-    @Autowired AirlineRepository airlineRepository;
+class AirlineRepositoryTest extends AbstractRepository {
+    @Autowired
+    AirlineRepository airlineRepository;
 
-    @Test @DisplayName("Airline: find by code")
+    @Test
+    @DisplayName("Airline: find by code")
     void shouldFindByCode() {
         //Given
         airlineRepository.save(Airline.builder().code("DC").name("despegar.com").build());
-        airlineRepository.save(Airline.builder().code("BG").name("Avianca").build());
+        airlineRepository.save(Airline.builder().code("BG").name("nosexd").build());
 
         //When
         Optional<Airline> airline = airlineRepository.findByCode("DC");
