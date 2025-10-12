@@ -1,15 +1,11 @@
 package edu.unimag.services;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
-
-import java.util.List;
-
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.Mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import edu.unimag.api.dto.TagDTOs.*;
@@ -17,9 +13,11 @@ import edu.unimag.domain.entity.Tag;
 import edu.unimag.domain.repositories.TagRepository;
 import edu.unimag.services.imp.TagServiceImp;
 
+import java.util.List;
+
 @ExtendWith(MockitoExtension.class)
 public class TagServiceImpTest {
-	@Mock TagRepository tagRepository;
+    @Mock TagRepository tagRepository;
 
     @InjectMocks TagServiceImp tagService;
 
@@ -49,7 +47,7 @@ public class TagServiceImpTest {
 
         var response = tagService.listAllTags();
 
-        assertThat(response.size()).isEqualTo(4);
+        assertThat(response).hasSize(4);
         assertThat(response).extracting(TagResponse::name).containsExactly("pruebi-tag", "tag-xd", "tag-zzz", "miTag");
     }
 
@@ -63,7 +61,7 @@ public class TagServiceImpTest {
 
         var response = tagService.listTagsByNameIn(tagNames);
 
-        assertThat(response.size()).isEqualTo(2);
+        assertThat(response).hasSize(2);
         assertThat(response).extracting(TagResponse::name).containsExactly("pruebi-tag", "miTag");
     }
 }

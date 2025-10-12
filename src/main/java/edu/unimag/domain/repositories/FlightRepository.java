@@ -15,7 +15,6 @@ import edu.unimag.domain.entity.Airport;
 import edu.unimag.domain.entity.Flight;
 
 public interface FlightRepository extends JpaRepository<Flight, Long> {
-	
     Page<Flight> findByAirline_Name(String airline_name, Pageable pageable);
     Page<Flight> findByOrigin_CodeAndDestination_CodeAndDepartureTimeBetween(
         String origin_code, String destination_code, OffsetDateTime from,
@@ -27,9 +26,10 @@ public interface FlightRepository extends JpaRepository<Flight, Long> {
         WHERE (:origin_code IS NULL OR :origin_code = f.origin.code) AND (:destination_code IS NULL OR :destination_code = f.destination.code)
             AND f.departureTime BETWEEN :from AND :to
    """)
-    List<Flight> filterByOriginAndDestinationOptionalAndDepartureTimeBetween(
+    Page<Flight> filterByOriginAndDestinationOptionalAndDepartureTimeBetween(
         @Param("origin_code") String origin_code, @Param("destination_code") String destination_code,
-        @Param("from") OffsetDateTime from, @Param("to") OffsetDateTime to);
+        @Param("from") OffsetDateTime from, @Param("to") OffsetDateTime to,
+        Pageable pageable);
 
     @Query(value = """
         SELECT f.* FROM flights f

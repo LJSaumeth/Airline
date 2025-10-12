@@ -1,18 +1,17 @@
 package edu.unimag.services;
 
-import static org.assertj.core.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.when;
-
-import java.time.OffsetDateTime;
-import java.util.List;
-import java.util.Optional;
-
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.time.OffsetDateTime;
+import java.util.List;
+import java.util.Optional;
+
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.Mockito.*;
 
 import edu.unimag.api.dto.SeatInventoryDTOs.*;
 import edu.unimag.domain.Enum.Cabin;
@@ -23,8 +22,8 @@ import edu.unimag.domain.repositories.SeatInventoryRepository;
 import edu.unimag.services.imp.SeatInventoryServiceImp;
 
 @ExtendWith(MockitoExtension.class)
-public class SeatInventoryImpTest {
-	@Mock FlightRepository flightRepository;
+public class SeatInventoryServiceImpTest {
+    @Mock FlightRepository flightRepository;
     @Mock SeatInventoryRepository seatInventoryRepository;
 
     @InjectMocks SeatInventoryServiceImp seatInventoryService;
@@ -41,19 +40,19 @@ public class SeatInventoryImpTest {
         });
 
         var response = seatInventoryService.createSeatInventory(1L,
-                new SeatInventoryCreateRequest("ECONOMY", 40, 35));
+                new SeatInventoryCreateRequest(Cabin.ECONOMY, 40, 35));
 
         assertThat(response).isNotNull();
         assertThat(response.id()).isEqualTo(10L);
         assertThat(response.flight_id()).isEqualTo(1L);
-        assertThat(response.cabin()).isEqualTo("ECONOMY");
+        assertThat(response.cabin()).isEqualTo(Cabin.ECONOMY);
     }
 
     @Test
     void shouldUpdateSeatInventoryAndMapToResponse(){
         when(seatInventoryRepository.findById(10L)).thenReturn(Optional.of(
                 SeatInventory.builder().id(10L).cabin(Cabin.valueOf("ECONOMY")).totalSeats(45)
-                .availableSeats(20).build()
+                .availableSeats(20).flight(Flight.builder().id(1555L).build()).build()
         ));
         when(seatInventoryRepository.save(any())).thenAnswer(invocation -> invocation.<SeatInventory>getArgument(0));
 
@@ -86,9 +85,8 @@ public class SeatInventoryImpTest {
         var response = seatInventoryService.listSeatInventoriesByFlight(1L);
 
         assertThat(response).hasSize(3);
-        assertThat(response).allSatisfy(seatInventory -> {
-            assertThat(seatInventory.flight_id()).isEqualTo(1L);
-        });
+        assertThat(response).extracting(SeatInventoryResponse::flight_id)
+                        .allMatch(flight_id -> flight_id.equals(1L));
     }
 
     @Test

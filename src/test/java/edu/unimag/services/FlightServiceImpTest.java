@@ -124,8 +124,10 @@ public class FlightServiceImpTest {
         when(airportRepository.findById(2L)).thenReturn(destination);
         when(flightRepository.findByOrigin_CodeAndDestination_CodeAndDepartureTimeBetween(origin.get().getCode(), destination.get().getCode(),
                 dep_from_time_1, dep_to_time_1, Pageable.unpaged())).thenReturn(new PageImpl<>(List.of(f1, f2)));
-        when(flightRepository.filterByOriginAndDestinationOptionalAndDepartureTimeBetween(origin.get().getCode(), null, dep_from_time_2,
-                dep_to_time_2)).thenReturn(List.of(f2, f3));
+        when(flightRepository.filterByOriginAndDestinationOptionalAndDepartureTimeBetween(
+                origin.get().getCode(), null, dep_from_time_2, dep_to_time_2, Pageable.unpaged()))
+            .thenReturn(new PageImpl<>(List.of(f2, f3)));
+
 
         var response_1 = flightService.listScheduledFlights(1L, 2L, dep_from_time_1, dep_to_time_1, Pageable.unpaged());
         var response_2 = flightService.listScheduledFlights(1L, null, dep_from_time_2, dep_to_time_2, Pageable.unpaged());

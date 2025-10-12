@@ -23,8 +23,8 @@ public class FlightRepositoryTest extends AbstractRepository{
     @Autowired private FlightRepository flightRepository;
     @Autowired private TestEntityManager testEntityManager;
     @Autowired private AirlineRepository airlineRepository;
-    @Autowired private TagRepository tagRepository;
 
+    private Flight flight_1, flight_2, flight_3,  flight_4;
     private Airline airline;
     private Airport airport_1, airport_3;
     private final OffsetDateTime staticDate = OffsetDateTime.of(
@@ -38,14 +38,14 @@ public class FlightRepositoryTest extends AbstractRepository{
         airport_3 = Airport.builder().code("XDD").name("miAeropuerto").city("Soledad").build();
         Airport airport_4 = Airport.builder().code("TDF").name("Aero-hard").city("El Dificil").build();
 
-        Flight flight_1 = Flight.builder().airline(airline).origin(airport_1).destination(airport_2).departureTime(staticDate)
-                .arrivalTime(staticDate.plusHours(2)).number("0001").build();
-        Flight flight_2 = Flight.builder().airline(airline).origin(airport_4).destination(airport_3).departureTime(staticDate.plusHours(2))
-                .arrivalTime(staticDate.plusHours(3)).number("0002").build();
-        Flight flight_3 = Flight.builder().airline(airline).origin(airport_1).destination(airport_2).departureTime(staticDate.plusDays(1))
-                .arrivalTime(staticDate.plusDays(1).plusHours(2)).number("0003").build();
-        Flight flight_4 = Flight.builder().airline(airline).origin(airport_2).destination(airport_4).departureTime(staticDate.plusWeeks(1))
-                .arrivalTime(staticDate.plusWeeks(1).plusHours(1)).number("0004").build();
+        flight_1 = Flight.builder().airline(airline).origin(airport_1).destination(airport_2).departureTime(staticDate)
+            .arrivalTime(staticDate.plusHours(2)).number("0001").build();
+        flight_2 = Flight.builder().airline(airline).origin(airport_4).destination(airport_3).departureTime(staticDate.plusHours(2))
+            .arrivalTime(staticDate.plusHours(3)).number("0002").build();
+        flight_3 = Flight.builder().airline(airline).origin(airport_1).destination(airport_2).departureTime(staticDate.plusDays(1))
+            .arrivalTime(staticDate.plusDays(1).plusHours(2)).number("0003").build();
+        flight_4 = Flight.builder().airline(airline).origin(airport_2).destination(airport_4).departureTime(staticDate.plusWeeks(1))
+            .arrivalTime(staticDate.plusWeeks(1).plusHours(1)).number("0004").build();
 
         testEntityManager.persistAndFlush(airline);
         testEntityManager.persistAndFlush(airport_1);
@@ -94,47 +94,56 @@ public class FlightRepositoryTest extends AbstractRepository{
     @Test @DisplayName("Flight: filter flights by departure time between two dates, and optionally, by origin and destination airport")
     void shouldFilterByDepartureTimeBetweenAndOriginAndDestinationOptional() {
         //When
-        List<Flight> loaded = flightRepository.filterByOriginAndDestinationOptionalAndDepartureTimeBetween(airport_1.getCode(), null,
-            staticDate.plusHours(1),  staticDate.plusWeeks(1).plusHours(5));
+    	Page<Flight> loaded = flightRepository.filterByOriginAndDestinationOptionalAndDepartureTimeBetween(
+    		    airport_1.getCode(), null,
+    		    staticDate.plusHours(1), staticDate.plusWeeks(1).plusHours(5),
+    		    Pageable.ofSize(10));
+
 
         //Then
-        assertThat(loaded).hasSize(1);
+        assertThat(loaded).hasSize(2);
         assertThat(loaded).allSatisfy(flight -> {
             assertThat(flight.getDepartureTime()).isBetween(staticDate.minusDays(1), staticDate.plusDays(2));
         });
     }
 
-    /* Fuck this stupid test
     @Test @DisplayName("Flight: find flights which has the same tags from a list of tags")
     void shouldFindByHavingSomeTags() {
         //Given
-        var tag1 = tagRepository.save(Tag.builder().name("tag1").build());
-        var tag2 = tagRepository.save(Tag.builder().name("tag2").build());
+        Tag tag1 = Tag.builder().name("tag1").build();
+        Tag tag2 = Tag.builder().name("pruebi-tag").build();
+        Tag tag3 = Tag.builder().name("tag-dado").build();
 
         var new_flight = flightRepository.save(Flight.builder().airline(airline).number("1001")
                 .origin(airport_3).destination(airport_1).departureTime(staticDate.plusDays(4))
                 .arrivalTime(staticDate.plusDays(4).plusHours(4)).build());
 
+        flight_1.addTag(tag1);
+        flight_1.addTag(tag2);
+
+        flight_2.addTag(tag3);
+        flight_2.addTag(tag1);
+
+        flight_3.addTag(tag2);
+        flight_3.addTag(tag3);
+
+        flight_4.addTag(tag1);
+        flight_4.addTag(tag2);
+
         new_flight.addTag(tag1);
         new_flight.addTag(tag2);
-        System.out.println("Cant tags: "+ new_flight.getTags().size());
 
-        tagRepository.saveAllAndFlush(List.of(tag1, tag2));
-        flightRepository.saveAndFlush(new_flight);
-
-        List<String> tags = List.of("tag1", "tag2");
+        List<String> tags = List.of("tag1", "pruebi-tag");
 
         //When
-        var loaded = flightRepository.findFlightsWithTheseTags(tags, 2L);
+        List<Flight> loaded = flightRepository.findFlightsWithTheseTags(tags, (long) tags.size());
 
         //Then
-        assertThat(loaded).hasSize(1);
+        assertThat(loaded).hasSize(3);
         assertThat(loaded).allSatisfy(flight -> {
-            var flightTagNames = flight.getTags().stream()
-                    .map(Tag::getName)
-                    .collect(Collectors.toSet());
-            assertThat(flightTagNames).containsAll(tags);
+            flight.getTags().forEach(tag -> {
+                assertThat(tags.contains(tag.getName())).isTrue();
+            });
         });
     }
-    */
 }
