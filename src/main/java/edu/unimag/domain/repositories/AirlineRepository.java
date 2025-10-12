@@ -8,4 +8,5 @@ import edu.unimag.domain.entity.Airline;
 
 public interface AirlineRepository extends JpaRepository<Airline, Long> {
     Optional<Airline> findByCode(String code);
+    Optional<Airline> findByName(String name);
 }
