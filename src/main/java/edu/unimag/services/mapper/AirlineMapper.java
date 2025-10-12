@@ -1,21 +1,22 @@
 package edu.unimag.services.mapper;
 
 import edu.unimag.api.dto.AirlineDTOs.AirlineCreateRequest;
-import edu.unimag.api.dto.AirlineDTOs.AirlineResponse;
 import edu.unimag.api.dto.AirlineDTOs.AirlineUpdateRequest;
-import edu.unimag.domain.entity.Airline;
+import edu.unimag.api.dto.AirlineDTOs.AirlineResponse;
+import edu.unimag.domain.entity.*;
+import org.mapstruct.*;
 
-public class AirlineMapper {
-	 public static Airline toEntity(AirlineCreateRequest request){
-	        return Airline.builder().code(request.code()).name(request.name()).build();
-	    }
+@Mapper(componentModel = "spring")
+public interface AirlineMapper {
 
-	    public static AirlineResponse toResponse(Airline entity){
-	        return new AirlineResponse(entity.getId(), entity.getCode(), entity.getName());
-	    }
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "flights", ignore = true)
+    Airline toEntity(AirlineCreateRequest request);
 
-	    public static void patch(Airline entity, AirlineUpdateRequest request){
-	        if (request.code() != null) entity.setCode(request.code());
-	        if (request.name() != null) entity.setName(request.name());
-	    }
+    AirlineResponse toResponse(Airline airline);
+
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "flights", ignore = true)
+    void patch(AirlineUpdateRequest request, @MappingTarget Airline entity);
 }

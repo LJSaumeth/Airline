@@ -8,13 +8,13 @@ import org.springframework.data.domain.Pageable;
 import edu.unimag.api.dto.FlightDTOs.*;
 
 public interface FlightService {
-	FlightResponse createFlight(FlightCreateRequest request, Long airline_id, Long origin_airport_id, Long destination_airport_id);
+    FlightResponse createFlight(FlightCreateRequest request);
     FlightResponse getFlight(Long id);
-    FlightResponse updateFlight(FlightUpdateRequest request, Long id);
+    FlightResponse updateFlight(Long id, FlightUpdateRequest request);
     void deleteFlight(Long id);
-    
-    Page<FlightResponse> listScheduledFlights(Long origin_airport_id, Long destination_airport_id, OffsetDateTime from, OffsetDateTime to, Pageable pageable);
+    Page<FlightResponse> listScheduledFlights(String origin_airport_code, String destination_airport_code,
+                                              OffsetDateTime from, OffsetDateTime to, Pageable pageable);
     FlightResponse addTagToFlight(Long flight_id, Long tag_id);
     FlightResponse removeTagFromFlight(Long flight_id, Long tag_id);
-    Page<FlightResponse> listFlightsByAirline(Long airline_id, Pageable pageable);
+    Page<FlightResponse> listFlightsByAirline(String airline_name, Pageable pageable);
 }

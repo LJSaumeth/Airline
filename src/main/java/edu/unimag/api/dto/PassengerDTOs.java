@@ -3,12 +3,17 @@ package edu.unimag.api.dto;
 import java.io.Serializable;
 
 import jakarta.annotation.Nonnull;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 
 public class PassengerDTOs {
-	 public record PassengerCreateRequest(@Nonnull String fullName, @Nonnull String email, @Nonnull PassengerProfileDto profile) implements Serializable{}
-	    public record PassengerProfileDto(String phone, String countryCode) implements Serializable{}
+    public record PassengerCreateRequest(@NotBlank String fullName, @Email @NotBlank String email,
+                                         PassengerProfileDto profile) implements Serializable{}
+    public record PassengerProfileDto(@NotBlank @Size(max = 24) String phone,
+                                      @NotBlank @Size(min = 2, max = 4) String countryCode) implements Serializable{}
 
-	    public record PassengerUpdateRequest(String fullName, String email, PassengerProfileDto profile) implements Serializable{}
+    public record PassengerUpdateRequest(String fullName, String email, PassengerProfileDto profile) implements Serializable{}
 
-	    public record PassengerResponse(Long id, String fullName, String email, PassengerProfileDto profile) implements Serializable{}
+    public record PassengerResponse(Long id, String fullName, String email, PassengerProfileDto profile) implements Serializable{}
 }

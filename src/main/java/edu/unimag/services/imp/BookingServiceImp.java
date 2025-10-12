@@ -33,39 +33,39 @@ public class BookingServiceImp implements BookingService{
     }
 
     @Override
-    public BookingResponse getBooking(@Nonnull Long id) {
+    public BookingResponse getBooking(Long id) {
         return bookingRepository.findById(id).map(BookingMapper::toResponse).orElseThrow(
                 () -> new NotFoundException("Booking %d not found.".formatted(id))
         );
     }
 
     @Override
-    public List<BookingResponse> listBookingsBetweenDates(@Nonnull OffsetDateTime start, @Nonnull OffsetDateTime end) {
+    public List<BookingResponse> listBookingsBetweenDates(OffsetDateTime start, OffsetDateTime end) {
         if (start.isAfter(end)) throw new IllegalArgumentException("Start date is after end date.");
         return bookingRepository.findByCreatedAtBetween(start, end).stream()
                 .map(BookingMapper::toResponse).toList();
     }
 
     @Override
-    public Page<BookingResponse> listBookingsByPassengerEmailAndOrderedMostRecently(@Nonnull String passenger_email, Pageable pageable) {
+    public Page<BookingResponse> listBookingsByPassengerEmailAndOrderedMostRecently(String passenger_email, Pageable pageable) {
         return bookingRepository.findByPassenger_EmailIgnoreCaseOrderByCreatedAtDesc(passenger_email,
                 pageable).map(BookingMapper::toResponse);
     }
 
     @Override
-    public BookingResponse getBookingWithAllDetails(@Nonnull Long id) {
-        return bookingRepository.findById(id).map(BookingMapper::toResponse).orElseThrow(
+    public BookingResponse getBookingWithAllDetails(Long id) {
+        return bookingRepository.searchWithAllDetails(id).map(BookingMapper::toResponse).orElseThrow(
                 () -> new NotFoundException("Booking %d not found.".formatted(id))
         );
     }
 
     @Override @Transactional
-    public BookingResponse updateBooking(@Nonnull Long id, Long passenger_id) {
+    public BookingResponse updateBooking(Long id, Long passenger_id) {
         var booking = bookingRepository.findById(id).orElseThrow(
                 () -> new NotFoundException("Booking %d not found.".formatted(id))
         );
         if (passenger_id != null) {
-            var new_passenger = passengerRepository.findById(id).orElseThrow(
+            var new_passenger = passengerRepository.findById(passenger_id).orElseThrow(
                     () -> new NotFoundException("Passenger %d not found.".formatted(id))
             );
             booking.setPassenger(new_passenger);
@@ -74,7 +74,7 @@ public class BookingServiceImp implements BookingService{
     }
 
     @Override @Transactional
-    public void deleteBooking(@Nonnull Long id) {
+    public void deleteBooking(Long id) {
         bookingRepository.deleteById(id);
     }
 }

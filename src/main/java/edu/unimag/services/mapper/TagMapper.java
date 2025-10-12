@@ -3,12 +3,14 @@ package edu.unimag.services.mapper;
 import edu.unimag.api.dto.TagDTOs.TagCreateRequest;
 import edu.unimag.api.dto.TagDTOs.TagResponse;
 import edu.unimag.domain.entity.Tag;
+import org.mapstruct.*;
 
-public class TagMapper {
-	public static Tag toEntity(TagCreateRequest request){
-        return  Tag.builder().name(request.name()).build();
-    }
-    public static TagResponse toResponse(Tag tag){
-        return new TagResponse(tag.getId(), tag.getName());
-    }
+@Mapper(componentModel = "spring")
+public interface TagMapper {
+
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "flights", ignore = true)
+    Tag toEntity(TagCreateRequest request);
+
+    TagResponse toResponse(Tag tag);
 }

@@ -1,41 +1,32 @@
 package edu.unimag.services.mapper;
 
-import java.util.Set;
-import java.util.stream.Collectors;
-
 import edu.unimag.api.dto.FlightDTOs.FlightCreateRequest;
-import edu.unimag.api.dto.FlightDTOs.FlightResponse;
 import edu.unimag.api.dto.FlightDTOs.FlightUpdateRequest;
-import edu.unimag.api.dto.TagDTOs.TagResponse;
+import edu.unimag.api.dto.FlightDTOs.FlightResponse;
 import edu.unimag.domain.entity.Flight;
-import edu.unimag.domain.entity.Tag;
+import org.mapstruct.*;
 
-public class FlightMapper {
-	 public static Flight ToEntity(FlightCreateRequest request) {
-	        return Flight.builder().number(request.number()).arrivalTime(request.arrivalTime())
-	                .departureTime(request.departureTime()).build();
-	    }
-	 
-	 public static FlightResponse toResponse(Flight flight) {
-	        Set<TagResponse> tagResponses = flight.getTags() == null ? Set.of() :
-	                flight.getTags().stream()
-	                        .map(tag -> new TagResponse(tag.getId(), tag.getName()))
-	                        .collect(Collectors.toSet());
+@Mapper(componentModel = "spring", uses = {TagMapper.class})
+public interface FlightMapper {
 
-	        return  new FlightResponse(flight.getId(), flight.getNumber(), flight.getDepartureTime(),
-	                flight.getArrivalTime(), flight.getAirline() != null ? flight.getAirline().getId() : null,
-	                flight.getOrigin() != null ? flight.getOrigin().getId() : null,
-	                flight.getDestination() != null ? flight.getDestination().getId() : null, tagResponses
-	        );
-	    }
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "airline", ignore = true)
+    @Mapping(target = "origin", ignore = true)
+    @Mapping(target = "destination", ignore = true)
+    @Mapping(target = "tags", ignore = true)
+    Flight toEntity(FlightCreateRequest request);
 
-	    public static void patch(Flight entity, FlightUpdateRequest request ) {
-	        if (request.number() != null ) entity.setNumber(request.number());
-	        if (request.departureTime() != null ) entity.setDepartureTime(request.departureTime());
-	        if (request.arrivalTime() != null ) entity.setArrivalTime(request.arrivalTime());
-	    }
+    @Mapping(source = "airline.id", target = "airline_id")
+    @Mapping(source = "origin.id", target = "origin_airport_id")
+    @Mapping(source = "destination.id", target = "destination_airport_id")
+    @Mapping(source = "tags", target = "tags")
+    FlightResponse toResponse(Flight flight);
 
-	    public static void addTag(Flight flight, Tag tag) {
-	        flight.addTag(tag);
-	    }
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "airline", ignore = true)
+    @Mapping(target = "origin", ignore = true)
+    @Mapping(target = "destination", ignore = true)
+    @Mapping(target = "tags", ignore = true)
+    void patch(FlightUpdateRequest request, @MappingTarget Flight entity);
 }

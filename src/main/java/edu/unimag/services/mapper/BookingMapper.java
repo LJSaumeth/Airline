@@ -1,30 +1,40 @@
 package edu.unimag.services.mapper;
 
-import java.util.List;
+import org.mapstruct.BeanMapping;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.MappingTarget;
+import org.mapstruct.NullValuePropertyMappingStrategy;
+import edu.unimag.api.dto.BookingDTOs.BookingItemUpdateRequest;
+import edu.unimag.api.dto.BookingDTOs.BookingItemCreateRequest;
+import edu.unimag.api.dto.BookingDTOs.BookingItemResponse;
+import edu.unimag.api.dto.BookingDTOs.BookingResponse;
+import edu.unimag.domain.entity.Booking;
+import edu.unimag.domain.entity.BookingItem;
 
-import edu.unimag.api.dto.BookingDTOs.*;
-import edu.unimag.domain.Enum.Cabin;
-import edu.unimag.domain.entity.*;
+@Mapper(componentModel = "spring")
+public interface BookingMapper {
+    // Booking
+    @Mapping(source = "passenger.fullName", target = "passenger_name")
+    @Mapping(source = "passenger.email", target = "passenger_email")
+    @Mapping(source = "items", target = "items")
+    BookingResponse toResponse(Booking booking);
 
-public class BookingMapper {
-    public static BookingResponse toResponse(Booking entity) {
-        var items = entity.getItems() == null? List.<BookingItemResponse>of() : entity.getItems().stream().map(BookingMapper::toItemResponse).toList();
-        var passengerName = entity.getPassenger() == null? null: entity.getPassenger().getFullName();
-        var passengerEmail = entity.getPassenger() == null? null: entity.getPassenger().getEmail();
+    //Booking Item
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "booking", ignore = true)
+    @Mapping(target = "flight", ignore = true)
+    BookingItem toItemEntity(BookingItemCreateRequest request);
 
-        return new BookingResponse(entity.getId(), entity.getCreatedAt(), passengerName, passengerEmail, items);
-    }
+    @Mapping(source = "booking.id", target = "booking_id")
+    @Mapping(source = "flight.id", target = "flight_id")
+    @Mapping(source = "flight.number", target = "flight_number")
+    BookingItemResponse toItemResponse(BookingItem item);
 
-    public static BookingItemResponse toItemResponse(BookingItem entity) {
-        return new BookingItemResponse(entity.getId(), entity.getCabin().name(), entity.getPrice(), entity.getSegmentOrder(), entity.getBooking().getId(),
-                entity.getFlight().getId(), entity.getFlight().getNumber());
-    }
+    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "booking", ignore = true)
+    @Mapping(target = "flight", ignore = true)
+    void patch(BookingItemUpdateRequest request, @MappingTarget BookingItem item);
 
-    public static void itemPatch(BookingItem entity, BookingItemUpdateRequest request) {
-        if (request.cabin() != null) entity.setCabin(Cabin.valueOf(request.cabin().toUpperCase()));
-        if (request.price() != null) entity.setPrice(request.price());
-        if (request.segmentOrder() != null) entity.setSegmentOrder(request.segmentOrder());
-    }
-
-    public static void addItem(BookingItem item, Booking booking){ booking.addItem(item); }
 }
