@@ -7,11 +7,11 @@ import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
+@DataJpaTest
 @Testcontainers
 @ActiveProfiles("test")
-@DataJpaTest
 public abstract class AbstractRepository {
-	 @Container
-	    @ServiceConnection
-	    static PostgreSQLContainer<?> postgres = new   PostgreSQLContainer<>("postgres:16-alpine");
+    @Container
+    @ServiceConnection
+    static PostgreSQLContainer<?> postgres = new PostgreSQLContainer<>("postgres:16-alpine");
 }

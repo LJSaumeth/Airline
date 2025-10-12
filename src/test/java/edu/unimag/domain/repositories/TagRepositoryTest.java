@@ -28,4 +28,3 @@ public class TagRepositoryTest extends AbstractRepository {
                 .contains("Hugo Etiketa", "Por los cielos");
     }
 }
-

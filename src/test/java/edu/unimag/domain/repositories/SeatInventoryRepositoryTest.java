@@ -24,7 +24,7 @@ public class SeatInventoryRepositoryTest extends AbstractRepository {
     @Autowired
     TestEntityManager entityManager;
 
-    private Flight flight1;
+    private Flight flight1, flight2;
 
     @BeforeEach
     void setUp() {

@@ -37,7 +37,9 @@ class BookingItemRepositoryTest extends AbstractRepository {
         setupTestData();
     }
 
-    	private void setupTestData() {
+    //Wipi, segun varias fuentes el SetupTestData es pa cargar las entidades correspondientes y que no tire errores (mejor creer)
+    //Entity Manager: Sirve para agilizar las cosas, PersistAndFlush hace que se cargue en memoria y en la DB al instante (futuro)
+    private void setupTestData() {
         Passenger passenger = Passenger.builder().fullName("Elma Estro").email("elmaspapiao@testmethis.com").build();
         entityManager.persistAndFlush(passenger);
 
@@ -50,6 +52,7 @@ class BookingItemRepositoryTest extends AbstractRepository {
         Airport destination = Airport.builder().name("Destination Airport").code("DS").city("Dest City").build();
         entityManager.persistAndFlush(destination);
 
+        // Nojoda cule poco e vainas
         flight1 = Flight.builder().number("AA001").departureTime(OffsetDateTime.now().plusDays(1)).arrivalTime(OffsetDateTime.now().plusDays(1)
                 .plusHours(2)).airline(airline).origin(origin).destination(destination).build();
         entityManager.persistAndFlush(flight1);
@@ -59,13 +62,14 @@ class BookingItemRepositoryTest extends AbstractRepository {
         entityManager.persistAndFlush(flight2);
 
 
-        booking1 = Booking.builder().createdAt(OffsetDateTime.now()).updatedAt(OffsetDateTime.now()).passenger(passenger).build();
+        booking1 = Booking.builder().createdAt(OffsetDateTime.now()).passenger(passenger).build();
         entityManager.persistAndFlush(booking1);
 
         entityManager.clear();
     }
 
- 
+    //.............................................................................................................................................................
+
     @Test
     @DisplayName("BookingItem: find by booking ID ordered by segment order")
     void shouldFindByBooking_IdOrderBySegmentOrder() {
@@ -90,6 +94,7 @@ class BookingItemRepositoryTest extends AbstractRepository {
                 });
     }
 
+//.............................................................................................................................................................
 
     @Test
     @DisplayName("BookingItem: calculates total by booking ID")
