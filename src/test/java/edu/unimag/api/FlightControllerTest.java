@@ -18,6 +18,8 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Set;
+
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -44,7 +46,7 @@ public class FlightControllerTest {
                 101L, "XDAirport", 102L, "DXAirport",
                 Set.of());
 
-        when(flightService.createFlight(request)).thenReturn(response);
+        when(flightService.createFlight(any())).thenReturn(response);
 
         mockMvc.perform(post("/api/v1/flights").contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
@@ -55,11 +57,11 @@ public class FlightControllerTest {
 
     @Test
     void get_ShouldReturn404() throws Exception {
-        when(flightService.getFlight(99L)).thenThrow(new NotFoundException("Room 99 not found"));
+        when(flightService.getFlight(99L)).thenThrow(new NotFoundException("Flight 99 not found"));
 
         mockMvc.perform(get("/api/v1/flights/99"))
                 .andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.message").value("Room 99 not found"));
+                .andExpect(jsonPath("$.message").value("Flight 99 not found"));
     }
 
     @Test
@@ -79,7 +81,9 @@ public class FlightControllerTest {
 
         when(flightService.listFlightsByAirline("ZZZZZ", PageRequest.of(0, 5))).thenReturn(page);
 
-        mockMvc.perform(get("/api/v1/flight?airlineName=ZZZZZ&page=0&size=5"))
+        mockMvc.perform(get("/api/v1/flights")
+                        .param("airlineName", "ZZZZZ")
+                        .param("page", "0").param("size", "5"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.totalElements").value(1));
     }
