@@ -14,7 +14,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import edu.unimag.api.dto.BookingDTOs.BookingItemCreateRequest;
+import edu.unimag.api.dto.BookingDTOs.*;
 import edu.unimag.domain.Enum.Cabin;
 import edu.unimag.domain.entity.Booking;
 import edu.unimag.domain.entity.BookingItem;
@@ -26,7 +26,7 @@ import edu.unimag.services.imp.BookingItemServiceImp;
 
 @ExtendWith(MockitoExtension.class)
 public class BookingItemServiceImpTest {
-	@Mock BookingItemRepository bookingItemRepository;
+    @Mock BookingItemRepository bookingItemRepository;
     @Mock FlightRepository flightRepository;
     @Mock BookingRepository bookingRepository;
 
@@ -48,17 +48,12 @@ public class BookingItemServiceImpTest {
     }
 
     @Test
-    void shouldUpdateBookingItemAndMapToResponse(){
-
-    }
-
-    @Test
     void shouldListBookingItemsByBooking(){
         var booking = Optional.of(Booking.builder().id(101L).createdAt(OffsetDateTime.now()).build());
         var booking_2 = Optional.of(Booking.builder().id(102L).createdAt(OffsetDateTime.now()).build());
         when(bookingRepository.findById(101L)).thenReturn(booking);
         when(bookingItemRepository.findByBooking_IdOrderBySegmentOrder(101L)).thenReturn(List.of(
-                BookingItem .builder().id(1011L).cabin(Cabin.ECONOMY).booking(booking.get()).price(new BigDecimal(1000000)).segmentOrder(1).build(),
+                BookingItem.builder().id(1011L).cabin(Cabin.ECONOMY).booking(booking.get()).price(new BigDecimal(1000000)).segmentOrder(1).build(),
                 BookingItem.builder().id(1012L).cabin(Cabin.PREMIUM).booking(booking_2.get()).price(new BigDecimal(7000000)).segmentOrder(1).build(),
                 BookingItem.builder().id(1013L).cabin(Cabin.PREMIUM).booking(booking.get()).price(new BigDecimal(4000000)).segmentOrder(2).build(),
                 BookingItem.builder().id(1014L).cabin(Cabin.PREMIUM).booking(booking_2.get()).price(new BigDecimal(4000000)).segmentOrder(2).build(),
@@ -68,7 +63,7 @@ public class BookingItemServiceImpTest {
         var response = bookingItemServiceImpl.listBookingItemsByBooking(101L);
 
         assertThat(response).hasSize(3);
-        assertThat(response).allSatisfy(bookingItem -> assertThat(bookingItem.booking_id()).isEqualTo(101L));
+        assertThat(response).extracting(BookingItemResponse::booking_id)
+                .allMatch(id -> id.equals(101L));
     }
-
 }

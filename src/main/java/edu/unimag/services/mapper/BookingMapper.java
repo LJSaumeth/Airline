@@ -36,5 +36,7 @@ public interface BookingMapper {
     @Mapping(target = "booking", ignore = true)
     @Mapping(target = "flight", ignore = true)
     void patch(BookingItemUpdateRequest request, @MappingTarget BookingItem item);
+    public static void addItem(BookingItem item, Booking booking){ booking.addItem(item); item.setBooking(booking); }
+
 
 }
